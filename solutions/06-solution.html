@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>RxJS exercise</title>
+</head>
+
+<body>
+  <div>
+    <div>
+      <label id="weight-text" style="display:inline-block; width:100px">Weight: ?kg</label>
+      <input id="weight-slider" type="range" min="20" max="200" value="110" />
+      <input id="weight-field" type="text" style="width: 40px;" value="110" />
+    </div>
+    <div>
+      <label id="height-text" style="display:inline-block; width:100px">Height: ?cm</label>
+      <input id="height-slider" type="range" min="100" max="300" value="200" />
+      <input id="height-field" type="text" style="width: 40px;" value="200" />
+    </div>
+    <h2 id="bmi"></h2>
+  </div>
+  <script src="https://unpkg.com/rxjs@6.5.1/bundles/rxjs.umd.min.js"></script>
+  <script>
+    const {fromEvent, merge, combineLatest} = rxjs;
+    const {map, startWith} = rxjs.operators;
+
+    // Get DOM elements
+    const weightSliderElem = document.querySelector('#weight-slider')
+    const weightFieldElem = document.querySelector('#weight-field')
+    const weightTextElem = document.querySelector('#weight-text')
+
+    const heightSliderElem = document.querySelector('#height-slider')
+    const heightFieldElem = document.querySelector('#height-field')
+    const heightTextElem = document.querySelector('#height-text')
+
+    const bmiElem = document.querySelector('#bmi')
+
+    /**
+     * Exercise: create the `weight$` observable which initially emits the current
+     * value on the weightSliderElem, then will emit new values coming from either
+     * weightSliderElem or weightFieldElem.
+     *
+     * Do similarly for `height$` too.
+     */
+    const weightSliderEvent$ = fromEvent(weightSliderElem, 'input');
+    const weightFieldEvent$ = fromEvent(weightFieldElem, 'input');
+
+    const heightSliderEvent$ = fromEvent(heightSliderElem, 'input');
+    const heightFieldEvent$ = fromEvent(heightFieldElem, 'input');
+
+    const weight$ = merge(weightSliderEvent$, weightFieldEvent$).pipe(
+      map(ev => ev.target.value),
+      startWith(weightSliderElem.value)
+    );
+
+    const height$ = merge(heightSliderEvent$, heightFieldEvent$).pipe(
+      map(ev => ev.target.value),
+      startWith(heightSliderElem.value)
+    );
+
+    /**
+     * Exercise: create the `bmi$` observable which emits a value
+     * calculated from `weight$` and `height$`, using the formula:
+     *     bmi = weight / ((height * 0.01) * (height * 0.01))
+     */
+    const bmi$ = combineLatest(weight$, height$,
+      (weight, height) => weight / ((height * 0.01) * (height * 0.01))
+    );
+
+    weight$.subscribe(val => {
+      weightTextElem.textContent = 'Weight: ' + val + 'kg'
+      weightFieldElem.value = val;
+      weightSliderElem.value = val;
+    })
+    height$.subscribe(val => heightTextElem.textContent = 'Height: ' + val + 'cm')
+    bmi$.subscribe(val => bmiElem.textContent = String(val))
+  </script>
+</body>
+
+</html>

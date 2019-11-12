@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>RxJS exercise</title>
+</head>
+
+<body>
+  <div>
+    <button id="decrement">Decrement</button>
+    <button id="increment">Increment</button>
+  </div>
+  <h2>Count:
+    <span id="count"></span>
+  </h2>
+  <script src="https://unpkg.com/rxjs@6.5.1/bundles/rxjs.umd.min.js"></script>
+  <script>
+    const {fromEvent, merge, of} = rxjs;
+    const {map, scan} = rxjs.operators;
+
+    // Get DOM elements
+    const decrementElem = document.querySelector('#decrement')
+    const incrementElem = document.querySelector('#increment')
+    const countElem = document.querySelector('#count')
+
+    const initReducer$ = of(function initReducer(prevState) {
+      return { count: 0 };
+    });
+
+    const incrementReducer$ = fromEvent(incrementElem, 'click').pipe(
+      map(clickEvent => function incrementReducer(prevState) {
+        return { count: prevState.count + 1 };
+      }),
+    );
+
+    const decrementReducer$ = fromEvent(decrementElem, 'click').pipe(
+      map(clickEvent => function decrementReducer(prevState) {
+        return { count: prevState.count - 1 };
+      }),
+    );
+
+    const reducer$ = merge(
+      initReducer$,
+      incrementReducer$,
+      decrementReducer$,
+    );
+
+    const state$ = reducer$.pipe(scan((state, reducer) => reducer(state), {}));
+    const count$ = state$.pipe(map(state => state.count));
+
+    count$.subscribe(val => countElem.textContent = String(val))
+  </script>
+</body>
+
+</html>

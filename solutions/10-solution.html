@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>RxJS exercise</title>
+</head>
+
+<body>
+  <script src="https://unpkg.com/rxjs@6.5.1/bundles/rxjs.umd.min.js"></script>
+  <script>
+    const {fromEvent, from} = rxjs;
+    const {map, switchAll} = rxjs.operators;
+
+    /**
+     * Exercise: on every click, make a request to a random user in
+     * JSONPlaceholder servers and deliver the response in the `responses`
+     * observable.
+     *
+     * Example: for a random number NUM (from 1 to 10) in
+     *    https://jsonplaceholder.typicode.com/users/NUM
+     */
+
+    const click$ = fromEvent(document, 'click');
+    const urlBase = 'http://jsonplaceholder.typicode.com/users/';
+
+    const response$ = click$.pipe(
+      map(() => from(fetch(urlBase + Math.ceil(Math.random() * 10)))),
+      switchAll(),
+      map(res => from(res.json())), // map (again) to a promise
+      switchAll(),
+    );
+
+    response$.subscribe({
+      next: (data) => { console.log(data) },
+      error: (err) => { console.log('error ' + err) },
+      complete: () => { console.log('done') },
+    });
+  </script>
+</body>
+
+</html>

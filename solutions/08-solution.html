@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>RxJS exercise</title>
+</head>
+
+<body>
+  <input type="text" class="first" />
+  <input type="text" class="last" />
+  <h2 class="greeting"></h2>
+  <script src="https://unpkg.com/rxjs@6.5.1/bundles/rxjs.umd.min.js"></script>
+  <script>
+    const {fromEvent, combineLatest} = rxjs;
+    const {map, startWith, filter, debounceTime} = rxjs.operators;
+
+    // Get DOM elements
+    const firstNameField = document.querySelector('.first')
+    const lastNameField = document.querySelector('.last')
+    const greetingElem = document.querySelector('.greeting')
+
+    /**
+     * Exercise: solve two bugs in this code with debugging techniques you
+     * just learned.
+     *
+     * - The full name should display the firstname even if there is no lastname.
+     * - After a while using the input field, it stops working.
+     */
+
+    const firstNameInputEvent$ = fromEvent(firstNameField, 'input');
+    const lastNameInputEvent$ = fromEvent(lastNameField, 'input');
+
+    const MAX_NAME_LENGTH = 20;
+
+    const first$ = firstNameInputEvent$.pipe(
+      map(event => event.target.value),
+      startWith(''),
+    );
+    const last$ = lastNameInputEvent$.pipe(
+      map(event => event.target.value),
+      startWith(''),
+    );
+
+    const fullName$ = combineLatest(first$, last$, (f, l) => `${f} ${l}`).pipe(
+      debounceTime(200),
+      filter(name => name.length < MAX_NAME_LENGTH),
+      map(name => name.toUpperCase()),
+    );
+
+    fullName$.subscribe({
+      next: (x) => { greetingElem.textContent = x },
+      error: (err) => { console.log('error ' + err) },
+      complete: () => { console.log('done') },
+    })
+  </script>
+</body>
+
+</html>
