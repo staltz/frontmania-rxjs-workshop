@@ -8,26 +8,47 @@
 </head>
 
 <body>
+  <input type="text" class="first" />
+  <input type="text" class="last" />
+  <h2 class="greeting"></h2>
   <script src="https://unpkg.com/rxjs@6.5.1/bundles/rxjs.umd.min.js"></script>
   <script>
-    const {fromEvent} = rxjs;
-    const {} = rxjs.operators;
+    var {fromEvent, combineLatest} = rxjs;
+    var {map, startWith, filter, debounceTime} = rxjs.operators;
+
+    // Get DOM elements
+    var firstNameField = document.querySelector('.first')
+    var lastNameField = document.querySelector('.last')
+    var greetingElem = document.querySelector('.greeting')
 
     /**
-     * Exercise: on every click, make a request to a random user in
-     * JSONPlaceholder servers and deliver the response in the `responses`
-     * observable.
+     * Exercise: solve two bugs in this code with debugging techniques you
+     * just learned.
      *
-     * Example: for a random number NUM (from 1 to 10) in
-     *    https://jsonplaceholder.typicode.com/users/NUM
+     * - The full name should display the firstname even if there is no lastname.
+     * - After a while using the input field, it stops working.
      */
 
-    const click$ = fromEvent(document, 'click');
+    var firstNameInputEvent$ = fromEvent(firstNameField, 'input');
+    var lastNameInputEvent$ = fromEvent(lastNameField, 'input');
 
-    const response$ = undefined // your solution here
+    var MAX_NAME_LENGTH = 20;
 
-    response$.subscribe({
-      next: (data) => { console.log(data) },
+    var first$ = firstNameInputEvent$.pipe(
+      map(event => event.target.value),
+    );
+    var last$ = lastNameInputEvent$.pipe(
+      map(event => event.target.value),
+    );
+
+    var fullName$ = combineLatest(first$, last$, (f, l) => `${f} ${l}`).pipe(
+      debounceTime(200),
+      filter(name => name.length < MAX_NAME_LENGTH--),
+      map(name => name.toUpperCase()),
+    );
+
+    fullName$.subscribe({
+      next: (x) => { greetingElem.textContent = x },
       error: (err) => { console.log('error ' + err) },
       complete: () => { console.log('done') },
     })
